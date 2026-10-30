@@ -109,6 +109,7 @@ export function TextField({ label, value, placeholder, onChange }: { label: stri
 export const Icon = {
   auto: <path d="M12 3l1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z" />,
   browser: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 9h18" /></>,
+  laptop: <><rect x="5" y="5" width="14" height="10" rx="1.5" /><path d="M2.5 18.5h19" /></>,
   phone: <><rect x="7" y="3" width="10" height="18" rx="2.5" /><path d="M11 18h2" /></>,
   tablet: <><rect x="4.5" y="3" width="15" height="18" rx="2" /><path d="M11 18h2" /></>,
   none: <rect x="4" y="6" width="16" height="12" rx="2" />,

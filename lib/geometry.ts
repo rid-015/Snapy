@@ -9,6 +9,8 @@ export const DEVICE = {
   phone: { bezel: 3.6, radius: 13 },
   tablet: { bezel: 3.2, radius: 6 },
 } as const;
+/** Laptop: the item's full width is the base; the lid sits centred on it. */
+export const LAPTOP = { lid: 88, side: 2, top: 2.8, bottom: 2.6, base: 3.4 } as const;
 
 export function resolveFrame(frame: FrameType, item: MediaItem): ResolvedFrame {
   if (frame !== 'auto') return frame;
@@ -19,6 +21,10 @@ export function resolveFrame(frame: FrameType, item: MediaItem): ResolvedFrame {
 export function framedAspect(item: MediaItem, frame: ResolvedFrame) {
   const a = item.width / item.height;
   if (frame === 'browser') return 100 / (100 / a + BROWSER_BAR);
+  if (frame === 'laptop') {
+    const L = LAPTOP;
+    return 100 / ((L.lid - 2 * L.side) / a + L.top + L.bottom + L.base);
+  }
   if (frame === 'phone' || frame === 'tablet') {
     const b = DEVICE[frame].bezel;
     return 100 / ((100 - 2 * b) / a + 2 * b);

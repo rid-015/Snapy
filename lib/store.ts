@@ -23,7 +23,10 @@ export const DEFAULT_DOC: Doc = {
   bg: { kind: 'mesh', paletteId: 'auto', custom: '#C8D7F0', angle: 135, grain: false },
   layout: 'side',
   caption: { on: false, title: 'Your product, beautifully framed', sub: 'One line about what it does', pos: 'top' },
+  watermark: { on: false, text: 'yoursite.com', logo: '', pos: 'br', opacity: 70 },
   canvas: { w: 1920, h: 1280, label: '3:2' },
+  format: 'png',
+  quality: 90,
   look: 'mesh',
 };
 
@@ -170,7 +173,7 @@ export const useStore = create<Store>((set, get) => ({
 
   init: (example) => {
     const saved = loadLook();
-    const base: Doc = { ...DEFAULT_DOC, ...saved, bg: { ...DEFAULT_DOC.bg, ...saved.bg }, caption: { ...DEFAULT_DOC.caption, ...saved.caption } };
+    const base: Doc = { ...DEFAULT_DOC, ...saved, bg: { ...DEFAULT_DOC.bg, ...saved.bg }, caption: { ...DEFAULT_DOC.caption, ...saved.caption }, watermark: { ...DEFAULT_DOC.watermark, ...saved.watermark } };
     const items = [example];
     const doc: Doc = { ...base, items, place: autoPlace(items, base.frame, base.layout, base.caption, base.canvas) };
     set({ doc, past: [], future: [] });

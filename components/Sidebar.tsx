@@ -1,10 +1,12 @@
 'use client';
 
+import { useRef } from 'react';
 import { backgroundCss, paletteFor } from '@/lib/backgrounds';
 import { LOOKS } from '@/lib/looks';
 import { PALETTES } from '@/lib/palette';
 import { MAX_ITEMS, useStore } from '@/lib/store';
-import type { BgKind, BrowserStyle, CaptionPos, DeviceTone, FrameType, LayoutKind, ShadowKind, Tilt } from '@/lib/types';
+import type { BgKind, BrowserStyle, CaptionPos, DeviceTone, ExportFormat, FrameType, LayoutKind, ShadowKind, Tilt, WatermarkPos } from '@/lib/types';
+import { FORMAT_LABEL, loadLogo } from '@/lib/export';
 import { Icon, Section, Segmented, Slider, Svg, TextField, Toggle } from './controls';
 import { resolveFrame } from '@/lib/geometry';
 
@@ -20,13 +22,17 @@ export default function Sidebar({ onPick }: { onPick: () => void }) {
   const applyLook = useStore((s) => s.applyLook);
   const removeItem = useStore((s) => s.removeItem);
   const relayout = useStore((s) => s.relayout);
+  const notify = useStore((s) => s.notify);
+  const logoRef = useRef<HTMLInputElement>(null);
+  const wm = doc.watermark;
 
   const real = doc.items.filter((i) => !i.example);
   const first = doc.items[0];
   const frames = doc.items.map((it) => resolveFrame(doc.frame, it));
   const showBrowser = frames.includes('browser');
-  const showDevice = frames.includes('phone') || frames.includes('tablet');
-  const onlyDevices = frames.length > 0 && frames.every((f) => f === 'phone' || f === 'tablet');
+  const isDevice = (f: string) => f === 'laptop' || f === 'phone' || f === 'tablet';
+  const showDevice = frames.some(isDevice);
+  const onlyDevices = frames.length > 0 && frames.every(isDevice);
 
   return (
     <aside className="side" aria-label="Edit">
@@ -89,7 +95,8 @@ export default function Sidebar({ onPick }: { onPick: () => void }) {
           label="Frame"
           value={doc.frame}
           onChange={(v) => commit({ frame: v })}
-          options={(['auto', 'browser', 'phone', 'tablet', 'none'] as const).map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1), icon: <Svg>{Icon[v]}</Svg> }))}
+          columns={3}
+          options={(['auto', 'browser', 'laptop', 'phone', 'tablet', 'none'] as const).map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1), icon: <Svg>{Icon[v]}</Svg> }))}
         />
         {showBrowser ? (
           <Segmented<BrowserStyle>
@@ -170,6 +177,66 @@ export default function Sidebar({ onPick }: { onPick: () => void }) {
             <Segmented<CaptionPos> label="Caption position" value={doc.caption.pos} onChange={(v) => commit({ caption: { ...doc.caption, pos: v } })} options={[{ value: 'top', label: 'Above' }, { value: 'bottom', label: 'Below' }]} />
           </>
         ) : null}
+      </Section>
+
+      <Section title="Watermark" defaultOpen={false} aside={wm.on ? 'On' : 'Off'}>
+        <Toggle label="Show watermark" checked={wm.on} onChange={(v) => commit({ watermark: { ...wm, on: v } })} />
+        {wm.on ? (
+          <>
+            <TextField label="Text" value={wm.text} placeholder="Optional" onChange={(v) => live({ watermark: { ...wm, text: v } })} />
+            <div className="logo-row">
+              {wm.logo ? <img src={wm.logo} alt="Your logo" /> : null}
+              <button type="button" className="btn" onClick={() => logoRef.current?.click()}>{wm.logo ? 'Change logo' : 'Add logo'}</button>
+              {wm.logo ? <button type="button" className="ghost" onClick={() => commit({ watermark: { ...wm, logo: '' } })}>Remove</button> : null}
+              <input
+                ref={logoRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (!f) return;
+                  try {
+                    const logo = await loadLogo(f);
+                    const cur = useStore.getState().doc.watermark;
+                    commit({ watermark: { ...cur, logo } });
+                  } catch {
+                    notify('Couldn’t open that logo. Try a PNG or SVG.', true);
+                  }
+                }}
+              />
+            </div>
+            <Segmented<WatermarkPos>
+              label="Watermark position"
+              value={wm.pos}
+              columns={2}
+              onChange={(v) => commit({ watermark: { ...wm, pos: v } })}
+              options={[{ value: 'tl', label: 'Top left' }, { value: 'tr', label: 'Top right' }, { value: 'bl', label: 'Bottom left' }, { value: 'br', label: 'Bottom right' }]}
+            />
+            <Slider label="Opacity" value={wm.opacity} min={10} max={100} step={5} unit="%" onChange={(v) => live({ watermark: { ...wm, opacity: v } })} />
+          </>
+        ) : null}
+      </Section>
+
+      <Section title="Export" defaultOpen={false} aside={FORMAT_LABEL[doc.format]}>
+        <Segmented<ExportFormat>
+          label="File format"
+          value={doc.format}
+          onChange={(v) => commit({ format: v })}
+          options={(['png', 'jpeg', 'webp'] as const).map((v) => ({ value: v, label: FORMAT_LABEL[v] }))}
+        />
+        {doc.format !== 'png' ? (
+          <Slider label="Quality" value={doc.quality} min={40} max={100} step={5} unit="%" onChange={(v) => live({ quality: v })} />
+        ) : null}
+        <p className="hint">
+          {doc.format === 'png'
+            ? 'Sharpest, and keeps transparency. Largest files.'
+            : doc.format === 'jpeg'
+              ? `Small files that open anywhere.${doc.bg.kind === 'clear' ? ' No transparency, so the background turns white.' : ''}`
+              : 'Smallest files, keeps transparency. Supported by modern browsers and apps.'}
+          {' '}Copy always uses PNG.
+        </p>
       </Section>
     </aside>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
+import { FORMAT_LABEL } from '@/lib/export';
 import { useStore } from '@/lib/store';
 import { Svg } from './controls';
 import { SIZES } from './Sidebar';
@@ -67,7 +68,9 @@ export default function TopBar({ onCopy, onDownload, busy }: { onCopy: () => voi
           <option value={2}>2×</option>
           <option value={3}>3×</option>
         </select>
-        <button type="button" className="btn" onClick={() => onDownload(scale)} disabled={busy}>Download</button>
+        <button type="button" className="btn" onClick={() => onDownload(scale)} disabled={busy} title="Download (⌘S). Change the format under Export.">
+          Download {FORMAT_LABEL[doc.format]}
+        </button>
         <button type="button" className="btn primary" onClick={onCopy} disabled={busy} title="Copy image (⌘C)">
           {busy ? 'Working…' : 'Copy'}<kbd>⌘C</kbd>
         </button>

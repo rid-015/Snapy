@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { copyPng, downloadBlob, renderPng } from '@/lib/export';
+import { FORMAT_EXT, copyPng, downloadBlob, renderImage } from '@/lib/export';
 import { ACCEPTED, loadImageFile, makeExample } from '@/lib/media';
 import { useStore } from '@/lib/store';
+import type { ExportFormat } from '@/lib/types';
 import Sidebar from './Sidebar';
 import Stage from './Stage';
 import TopBar from './TopBar';
@@ -47,16 +48,16 @@ export default function Editor() {
 
   const pick = useCallback(() => fileRef.current?.click(), []);
 
-  const render = useCallback(async (scale: number) => {
+  const render = useCallback(async (scale: number, format: ExportFormat = 'png') => {
     const node = compRef.current;
-    const { canvas } = useStore.getState().doc;
+    const { canvas, quality } = useStore.getState().doc;
     if (!node) throw new Error('no canvas');
-    return renderPng(node, canvas.w, canvas.h, scale);
+    return renderImage(node, canvas.w, canvas.h, scale, format, quality);
   }, []);
 
-  const fileName = () => {
+  const fileName = (format: ExportFormat) => {
     const first = useStore.getState().doc.items.find((i) => !i.example);
-    return `${first ? first.name.replace(/\.[^.]+$/, '') : 'snapy'}-snapy.png`;
+    return `${first ? first.name.replace(/\.[^.]+$/, '') : 'snapy'}-snapy.${FORMAT_EXT[format]}`;
   };
 
   const copy = useCallback(async () => {
@@ -76,9 +77,12 @@ export default function Editor() {
     if (busy) return;
     setBusy(true);
     try {
-      downloadBlob(await render(scale), fileName());
-    } catch {
-      notify('Couldn’t create the image. Try a smaller canvas or 1×.', true);
+      const { format } = useStore.getState().doc;
+      downloadBlob(await render(scale, format), fileName(format));
+    } catch (err) {
+      notify(err instanceof Error && err.message === 'format'
+        ? 'This browser can’t save that format. Try PNG or JPG.'
+        : 'Couldn’t create the image. Try a smaller canvas or 1×.', true);
     } finally {
       setBusy(false);
     }

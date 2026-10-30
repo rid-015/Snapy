@@ -1,4 +1,4 @@
-export type FrameType = 'auto' | 'none' | 'browser' | 'phone' | 'tablet';
+export type FrameType = 'auto' | 'none' | 'browser' | 'laptop' | 'phone' | 'tablet';
 export type ResolvedFrame = Exclude<FrameType, 'auto'>;
 export type BrowserStyle = 'light' | 'dark' | 'glass';
 export type DeviceTone = 'dark' | 'light';
@@ -7,6 +7,8 @@ export type Tilt = 'flat' | 'left' | 'right' | 'iso';
 export type BgKind = 'mesh' | 'linear' | 'solid' | 'blur' | 'clear';
 export type LayoutKind = 'single' | 'side' | 'overlap' | 'combo';
 export type CaptionPos = 'top' | 'bottom';
+export type WatermarkPos = 'tl' | 'tr' | 'bl' | 'br';
+export type ExportFormat = 'png' | 'jpeg' | 'webp';
 
 export interface MediaItem {
   id: string;
@@ -44,6 +46,15 @@ export interface Caption {
   pos: CaptionPos;
 }
 
+export interface Watermark {
+  on: boolean;
+  text: string;
+  /** Small data URL (downscaled on upload) so it can be remembered with the look. */
+  logo: string;
+  pos: WatermarkPos;
+  opacity: number;
+}
+
 export interface CanvasSize {
   w: number;
   h: number;
@@ -65,7 +76,11 @@ export interface Doc {
   bg: Background;
   layout: LayoutKind;
   caption: Caption;
+  watermark: Watermark;
   canvas: CanvasSize;
+  format: ExportFormat;
+  /** 1–100, used for JPG and WebP. */
+  quality: number;
   look: string | null;
 }
 

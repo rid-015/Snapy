@@ -42,6 +42,16 @@ const Composition = forwardRef<HTMLDivElement, Props>(function Composition({ doc
         </div>
       ) : null}
 
+      {doc.watermark.on && (doc.watermark.text || doc.watermark.logo) ? (
+        <div
+          className={`comp-mark pos-${doc.watermark.pos}`}
+          style={{ fontSize: canvas.w * 0.014, padding: Math.round(canvas.w * 0.025), opacity: doc.watermark.opacity / 100, color: dark ? '#FFFFFF' : '#2E2E2A' }}
+        >
+          {doc.watermark.logo ? <img src={doc.watermark.logo} alt="" /> : null}
+          {doc.watermark.text ? <span>{doc.watermark.text}</span> : null}
+        </div>
+      ) : null}
+
       {ordered.map((item) => {
         const p = doc.place[item.id];
         if (!p) return null;

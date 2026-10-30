@@ -1,6 +1,6 @@
 'use client';
 
-import { BROWSER_BAR, DEVICE } from '@/lib/geometry';
+import { BROWSER_BAR, DEVICE, LAPTOP } from '@/lib/geometry';
 import type { Doc, MediaItem, ResolvedFrame, ShadowKind } from '@/lib/types';
 
 export function shadowCss(kind: ShadowKind, opacity: number) {
@@ -24,6 +24,19 @@ export function shadowCss(kind: ShadowKind, opacity: number) {
 export default function Frame({ item, frame, doc }: { item: MediaItem; frame: ResolvedFrame; doc: Doc }) {
   const shadow = shadowCss(doc.shadow, doc.shadowOpacity);
   const r = doc.radius / 8; // slider px at 800px-wide reference → em
+
+  if (frame === 'laptop') {
+    const L = LAPTOP;
+    return (
+      <div className={`fr-laptop tone-${doc.deviceTone}`}>
+        <div className="lap-lid" style={{ width: `${L.lid}em`, padding: `${L.top}em ${L.side}em ${L.bottom}em`, boxShadow: shadow }}>
+          <span className="lap-cam" style={{ top: `${L.top / 2}em` }} />
+          <img src={item.src} alt="" draggable={false} />
+        </div>
+        <div className="lap-base" style={{ height: `${L.base}em`, boxShadow: shadow }}><span className="lap-notch" /></div>
+      </div>
+    );
+  }
 
   if (frame === 'phone' || frame === 'tablet') {
     const d = DEVICE[frame];
